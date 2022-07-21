@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./Interfaces.sol";
+import "../Interfaces.sol";
 
 contract Swapper is Ownable {
     IROUTER router;
