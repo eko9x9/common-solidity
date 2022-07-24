@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../SafeERC20.sol";
-import "../../utils/SafeMath.sol";
+import "../../utils/library/SafeMath.sol";
 import "../Interfaces.sol";
-import "../../utils/Ownable.sol";
-import "../../utils/ReentrancyGuard.sol";
+import "../../utils/library/Ownable.sol";
+import "../../utils/library/ReentrancyGuard.sol";
 
 contract Staking is Ownable, ReentrancyGuard {
     // Library usage
@@ -36,7 +36,7 @@ contract Staking is Ownable, ReentrancyGuard {
     /**
      * @notice token stored to distribute reward
      */
-    mapping(address => uint) internal tokenProvaiderStored;
+    mapping(address => uint) internal tokenStored;
 
     // swap to different token
     IROUTER private swapper;
@@ -44,13 +44,14 @@ contract Staking is Ownable, ReentrancyGuard {
     // staking provaider token
     IERC20 public stakeProvaider;
 
-    constructor(address _tokenProvaider, uint _durationStake, uint _maxAmountStake, address _swapperRouter) {
+    constructor(address _tokenProvaider, uint _durationStake, uint16 _rewardRate, uint _maxAmountStake, address _swapperRouter) {
         tokenStakeAllowed[_tokenProvaider] = true;
         maxAmountStake = _maxAmountStake;
+        rewardRate[_tokenProvaider] = _rewardRate;
+        duration = _durationStake;
 
         stakeProvaider = IERC20(_tokenProvaider);
         swapper = IROUTER(_swapperRouter);
-        duration = _durationStake;
     }
 
     function stake(address _tokenStake, uint _amount)
@@ -75,7 +76,7 @@ contract Staking is Ownable, ReentrancyGuard {
         }
 
         if(_tokenStake == address(stakeProvaider)){
-            stakeProvaider.safeTransferFrom(msg.sender, address(this), amountStake);
+            stakeProvaider.safeTransferFrom(msg.sender, address(this), _amount);
         }else {
             IERC20 tokenToStake = IERC20(_tokenStake);
             tokenToStake.safeTransferFrom(msg.sender, address(this), _amount);
@@ -83,19 +84,14 @@ contract Staking is Ownable, ReentrancyGuard {
         
     }
 
-    function swapToken(address _tokenToSwap) private {
-        
-    }
-
     function claimReward(IERC20 _tokenStake)
         public
-        updateReward(msg.sender)
         nonReentrant
     {
         uint rewardToken = rewardOf(msg.sender, address(_tokenStake));
         require(rewardToken != 0, "Stake Time is not over yet");
+        _transferReward(address(_tokenStake), msg.sender, rewardToken);
         _resetStartStakeUser(msg.sender, address(_tokenStake));
-        _tokenStake.safeTransfer(msg.sender, rewardToken);
     }
 
     function isStakeholder(address _tokenStake, address _address)
@@ -187,13 +183,19 @@ contract Staking is Ownable, ReentrancyGuard {
         feeStake = _feeStake;
     }
 
+    /**
+     * @dev set duration in seconds
+     */
     function setDuration(uint _duration) external onlyOwner {
         duration = _duration;
     }
 
+    function _swapToken(address _tokenToSwap, uint _amount) private {
+        address[] memory path = new address[](2);
+        path[0] = address(stakeProvaider);
+        path[1] = _tokenToSwap;
 
-    modifier updateReward(address _account) {
-        _;
+        swapper.swapExactTokensForTokensSupportingFeeOnTransferTokens(_amount, 35, path, address(this), block.timestamp + duration);
     }
 
     function _addStake(address _tokenStake, uint _amount)
@@ -218,6 +220,44 @@ contract Staking is Ownable, ReentrancyGuard {
         }
     }
 
+    function _transferReward(address _tokenStake, address _to, uint _amountReward) private {
+        uint amountTokenStored = tokenStored[_tokenStake];
+        IERC20 tokenStoredStaking = IERC20(_tokenStake);
+
+        if(amountTokenStored < _amountReward){
+            if(_tokenStake == address(stakeProvaider)){
+                stakeProvaider.safeTransferFrom(address(stakeProvaider), msg.sender, _amountReward);
+            }else {
+                // From token stake provaider convert to another token
+
+            }
+        }else {
+            if(_tokenStake == address(stakeProvaider)){
+                tokenStoredStaking.safeTransfer(_to, _amountReward);
+                _updateTokenStored(address(tokenStoredStaking), tokenStored[address(tokenStoredStaking)] - _amountReward);
+            }else {
+                // From token stake provaider convert to another token
+                _updateTokenStored(address(tokenStoredStaking), tokenStored[address(tokenStoredStaking)] - _amountReward);
+            }
+        }
+    }
+
+    function _updateTokenStored(address _tokenStored, uint _amount) private {
+        tokenStored[_tokenStored] =  _amount;
+    }
+
+    function _calculatePriceToken(address _tokenAddress) private view returns(uint) {
+        
+    }
+
+    function _tokenPriceProvaider()
+        private
+        view
+        returns (uint)
+    {
+
+    }
+
     /**
      * @dev getBnbPrice in busd
      */
@@ -236,14 +276,6 @@ contract Staking is Ownable, ReentrancyGuard {
         return amountsOut[1] / ethGwei;
     }
 
-    function tokenPriceProvaider()
-        public
-        view
-        returns (uint)
-    {
-
-    }
-
     function _min(uint x, uint y)
         private
         pure
@@ -254,12 +286,14 @@ contract Staking is Ownable, ReentrancyGuard {
 
     function addStoredToken(IERC20 _token, uint _amount) external onlyOwner {
         _token.safeTransferFrom(msg.sender, address(this), _amount);
-        tokenProvaiderStored[address(_token)] = tokenProvaiderStored[address(_token)].add(_amount);
+        tokenStored[address(_token)] = tokenStored[address(_token)].add(_amount);
     }
 
     function removeStoredToken(IERC20 _token) external onlyOwner {
-        _token.safeTransfer(owner(), address(this).balance);
-        tokenProvaiderStored[address(_token)] = 0;
+        uint balanceStaking = _token.balanceOf(address(this));
+        require(balanceStaking != 0, "Token is empty!");
+        _token.safeTransfer(owner(), balanceStaking);
+        tokenStored[address(_token)] = 0;
     }
 
     function withdraw() external onlyOwner {
