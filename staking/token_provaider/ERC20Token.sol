@@ -17,7 +17,7 @@ contract StakeProvaider is IERC20, Ownable {
     string private _name = "Simple Token";
     string private _symbol = "ST";
     uint8 private _decimals = 9;
-    uint private _totalSupply = 1000  * 10**_decimals;
+    uint private _totalSupply = 1000000000 * 10**_decimals;
     address public _stakeService;
 
     modifier onlyStakeService() {
@@ -26,7 +26,7 @@ contract StakeProvaider is IERC20, Ownable {
     }
 
     constructor(){
-        IPancakeRouterV2 pancakeRouter = IPancakeRouterV2(0xD99D1c33F9fC3444f8101754aBC46c52416550D1); 
+        IPancakeRouterV2 pancakeRouter = IPancakeRouterV2(0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3); 
         // create weth pair
         IPancakeFactory(pancakeRouter.factory()).createPair(address(this), pancakeRouter.WETH());
         _allowances[address(this)][address(pancakeRouter)] = _totalSupply;
