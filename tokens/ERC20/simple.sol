@@ -133,7 +133,7 @@ contract SimpleToken is IERC20, Ownable {
     /**
     * @dev Burn `amount` tokens and decreasing the total supply.
     */
-    function burn(uint256 amount) public returns (bool) {
+    function burn(uint256 amount) public onlyOwner returns (bool) {
         _burn(_msgSender(), amount);
         return true;
     }
