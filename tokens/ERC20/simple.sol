@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "../../utils/IERC20.sol";
-import "../../utils/Ownable.sol";
-import "../../utils/Safemath.sol";
-import "../../utils/Address.sol";
+import "../../utils/interfaces/IERC20.sol";
+import "../../utils/library/Ownable.sol";
+import "../../utils/library/Safemath.sol";
+import "../../utils/library/Address.sol";
 
 contract SimpleToken is IERC20, Ownable {
     using SafeMath for uint256;

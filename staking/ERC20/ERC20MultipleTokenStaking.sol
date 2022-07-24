@@ -18,24 +18,17 @@ contract Staking is Ownable, ReentrancyGuard {
         uint startTime;
     }
 
-    struct Rewards {
-        address tokenStake;
-        uint amount;
-    }
-
-    struct RewardRate {
-        address tokenStake;
-        uint16 rate;
-    }
-
+    // Fee on stake
+    uint public feeStake = 0;
+    // Max stake
+    uint public maxAmountStake = 0;
     // Duration of rewards to be paid out (in seconds)
-    uint public duration;
-    // Reward to be paid out per second
-    mapping(address => RewardRate[]) internal rewardRate;
-    // User address => rewards to be claimed
-    mapping(address => Rewards[]) internal rewards;
+    // 7 Days (7 * 24 * 60 * 60)
+    uint public duration = 604800;
+    // Reward rate token
+    mapping(address => uint128) public rewardRate;
     // Token stake allowed
-    address[] internal tokenStakeAllowed;
+    mapping(address => bool) public tokenStakeAllowed;
     /**
      * @notice The stakes for each stakeholder.
      */
@@ -44,50 +37,45 @@ contract Staking is Ownable, ReentrancyGuard {
      * @notice token stored to distribute reward
      */
     mapping(address => uint) internal tokenProvaiderStored;
-     /**
-     * @notice We usually require to know who are all the stakeholders.
-     */
-    address[] internal stakeholders;
 
     // swap to different token
-    IROUTER internal swapper;
+    IROUTER private swapper;
 
     // staking provaider token
     IERC20 public stakeProvaider;
 
-    constructor(address _tokenProvaider, uint _durationStake, address _swapperRouter) {
+    constructor(address _tokenProvaider, uint _durationStake, uint _maxAmountStake, address _swapperRouter) {
+        tokenStakeAllowed[_tokenProvaider] = true;
+        maxAmountStake = _maxAmountStake;
+
         stakeProvaider = IERC20(_tokenProvaider);
         swapper = IROUTER(_swapperRouter);
         duration = _durationStake;
     }
 
-    modifier updateReward(address _account) {
-
-        if (_account != address(0)) {
-
-        }
-
-        _;
-    }
-
-    function stake(address _tokenStake, uint _amount) public nonReentrant {
+    function stake(address _tokenStake, uint _amount)
+        public
+        nonReentrant
+    {
         require(_amount > 0, "amount = 0");
+        require(tokenStakeAllowed[_tokenStake] == true, "Token not allowed to stake!");
+        require(maxAmountStake >= _amount, "Tokens exceed max stake!");
+        // amount stake with fee
+        uint amountStake = _amount + _amount * (feeStake / 1000);
         // check is the address already stakes
-        if(isStakeholder(_tokenStake, msg.sender)){
+        if(!isStakeholder(_tokenStake, msg.sender)){
             // Add amount token stake holder
             stakes[msg.sender].push(TokenStake(
-                address(_tokenStake),
-                _amount,
+                _tokenStake,
+                amountStake,
                 block.timestamp
             ));
         }else {
-            addStake(_tokenStake, _amount);
+            _addStake(_tokenStake, amountStake);
         }
 
         if(_tokenStake == address(stakeProvaider)){
-            // _burn(msg.sender, _amount);
-            // tokenProvaider.safeTransferFrom(msg.sender, address(this), _amount);
-            
+            stakeProvaider.safeTransferFrom(msg.sender, address(this), amountStake);
         }else {
             IERC20 tokenToStake = IERC20(_tokenStake);
             tokenToStake.safeTransferFrom(msg.sender, address(this), _amount);
@@ -95,22 +83,19 @@ contract Staking is Ownable, ReentrancyGuard {
         
     }
 
-    function addStake(address _tokenStake, uint _amount) private {
+    function swapToken(address _tokenToSwap) private {
         
     }
 
-    function feeStake() private {
-
-    }
-
-    function setFeeStake(uint _feeStake) external onlyOwner {
-
-    }
-
-    function withdraw(IERC20 _tokenStake, uint _amount) public nonReentrant updateReward(msg.sender) {
-        // require(_amount > 0, "amount = 0");
-        //  require(stakeInfos[_msgSender()].endTS < block.timestamp, "Stake Time is not over yet");
-        // tokenProvaider.safeTransfer(msg.sender, _amount);
+    function claimReward(IERC20 _tokenStake)
+        public
+        updateReward(msg.sender)
+        nonReentrant
+    {
+        uint rewardToken = rewardOf(msg.sender, address(_tokenStake));
+        require(rewardToken != 0, "Stake Time is not over yet");
+        _resetStartStakeUser(msg.sender, address(_tokenStake));
+        _tokenStake.safeTransfer(msg.sender, rewardToken);
     }
 
     function isStakeholder(address _tokenStake, address _address)
@@ -120,7 +105,9 @@ contract Staking is Ownable, ReentrancyGuard {
     {
         if(stakes[_address].length != 0){
             for (uint256 s = 0; s < stakes[_address].length ; s += 1){
-                if (_tokenStake == stakes[_address][s].tokenStake) return (true);
+                if (_tokenStake == stakes[_address][s].tokenStake) {
+                    return (true);
+                }
             }
 
             return (false);
@@ -129,17 +116,116 @@ contract Staking is Ownable, ReentrancyGuard {
         }
     }
 
+    function rewardOf(address _account, address _tokenStake)
+        public
+        view
+        returns (uint)
+    {
+        require(isStakeholder(_tokenStake, _account) == true, "Account not holder");
+        uint timeNow = block.timestamp;
+        uint userTimeStake;
+        uint amountUserStake;
+
+        for (uint256 s = 0; s < stakes[_account].length ; s += 1){
+            if (_tokenStake == stakes[_account][s].tokenStake) {
+                amountUserStake = stakes[_account][s].amount;
+                userTimeStake = stakes[_account][s].startTime;
+                break;
+            }
+        }
+
+        uint longStake = userTimeStake + duration;
+        if(longStake > timeNow){
+            return 0;
+        }else {
+            uint rate = rewardRate[_tokenStake];
+            uint reward =  amountUserStake * rate / 1000 ;
+
+            return reward;
+        }
+
+    }
+
     /**
      * @dev set stake provaider to give rewards or any
      */
-    function setStakeProvaider(address _stakeProvaider) external onlyOwner {
+    function setStakeProvaider(address _stakeProvaider)
+        external
+        onlyOwner
+    {
         stakeProvaider = IERC20(_stakeProvaider);
+    }
+
+    /**
+     * @dev add or update token stake allowed
+     */
+    function addOrUpdateTokenStakeAllowed(address _tokenAddress, bool _isAllowed)
+        external
+        onlyOwner
+    {
+        tokenStakeAllowed[_tokenAddress] = _isAllowed;
+    }
+
+    /**
+     * @dev set reward rate of token / 1000
+     */
+    function setRewardRate(address _token, uint128 _rate)
+        external
+        onlyOwner
+    {
+        require(tokenStakeAllowed[_token] == true, "Token not allowed to stake!.");
+        rewardRate[_token] = _rate;
+    }
+
+    /**
+     * @dev set fee on stake / 1000
+     */
+    function setFeeStake(uint _feeStake)
+        external
+        onlyOwner
+    {
+        feeStake = _feeStake;
+    }
+
+    function setDuration(uint _duration) external onlyOwner {
+        duration = _duration;
+    }
+
+
+    modifier updateReward(address _account) {
+        _;
+    }
+
+    function _addStake(address _tokenStake, uint _amount)
+        private
+    {
+        require(isStakeholder(_tokenStake, msg.sender) == true, "You are not stake holder");
+        require(maxAmountStake >= _amount, "Tokens exceed max stake!");
+        for (uint256 s = 0; s < stakes[msg.sender].length ; s += 1){
+            if (_tokenStake == stakes[msg.sender][s].tokenStake){
+                stakes[msg.sender][s].amount = stakes[msg.sender][s].amount.add(_amount);
+                stakes[msg.sender][s].startTime = block.timestamp;
+            }
+        }
+    }
+
+    function _resetStartStakeUser(address _tokenStake, address _account) private {
+        require(isStakeholder(_tokenStake, _account) == true, "You are not stake holder");
+        for (uint256 s = 0; s < stakes[_account].length ; s += 1){
+            if (_tokenStake == stakes[_account][s].tokenStake){
+                stakes[_account][s].startTime = block.timestamp;
+            }
+        }
     }
 
     /**
      * @dev getBnbPrice in busd
      */
-    function getBnbPrice() public view returns (uint) {
+    function getBnbPrice()
+        public
+        view
+        returns (uint)
+    {
         address[] memory path = new address[](2);
         path[0] = swapper.WETH();
         path[1] = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
@@ -147,14 +233,36 @@ contract Staking is Ownable, ReentrancyGuard {
 
         uint[] memory amountsOut = swapper.getAmountsOut(ethGwei, path);
 
-        return amountsOut[1] * ethGwei;
+        return amountsOut[1] / ethGwei;
     }
 
-    function tokenPriceProvaider() public view returns (uint){
+    function tokenPriceProvaider()
+        public
+        view
+        returns (uint)
+    {
 
     }
 
-    function _min(uint x, uint y) private pure returns (uint) {
+    function _min(uint x, uint y)
+        private
+        pure
+        returns (uint)
+    {
         return x <= y ? x : y;
+    }
+
+    function addStoredToken(IERC20 _token, uint _amount) external onlyOwner {
+        _token.safeTransferFrom(msg.sender, address(this), _amount);
+        tokenProvaiderStored[address(_token)] = tokenProvaiderStored[address(_token)].add(_amount);
+    }
+
+    function removeStoredToken(IERC20 _token) external onlyOwner {
+        _token.safeTransfer(owner(), address(this).balance);
+        tokenProvaiderStored[address(_token)] = 0;
+    }
+
+    function withdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
     }
 }
