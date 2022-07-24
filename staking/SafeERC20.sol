@@ -3,8 +3,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../utils/IERC20.sol";
-import "../utils/Address.sol";
+import "../utils/interfaces/IERC20.sol";
+import "../utils/library/Address.sol";
 
 /**
  * @dev Interface of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
