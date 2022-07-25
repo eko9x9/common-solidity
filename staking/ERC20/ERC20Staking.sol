@@ -219,7 +219,7 @@ contract Staking is Ownable, ReentrancyGuard {
         return tokenStored[_tokenAddress];
     }
 
-    function stakingMembers() external view returns(uint) {
+    function stakingMembers() public view returns(uint) {
         return stakeHolders.length;
     }
 
@@ -274,12 +274,12 @@ contract Staking is Ownable, ReentrancyGuard {
         return(totalUnclaimed + 1);
     }
 
-    function stakeTypeOf(address _account) external view returns(TypeStake) {
+    function stakeTypeOf(address _account) public view returns(TypeStake) {
         require(isStakeHolder(_account), "Nothing stake!.");
         return stakes[_account].typeStake;
     }
 
-    function stakeAmountOf(address _account) external view returns(uint) {
+    function stakeAmountOf(address _account) public view returns(uint) {
         require(isStakeHolder(_account), "Nothing stake!.");
         return stakes[_account].amount;
     }
@@ -325,14 +325,7 @@ contract Staking is Ownable, ReentrancyGuard {
 
     function addStoredToken(IERC20 _token, uint _amount) external onlyOwner nonReentrant {
         _token.safeTransferFrom(msg.sender, address(this), _amount);
-        tokenStored[address(_token)] = tokenStored[address(_token)].add(_amount);
-    }
-
-    function removeStoredToken(IERC20 _token) external onlyOwner nonReentrant {
-        uint balanceStaking = _token.balanceOf(address(this));
-        require(balanceStaking != 0, "Token is empty!");
-        _token.safeTransfer(owner(), balanceStaking);
-        tokenStored[address(_token)] = 0;
+        _updateTokenStored(address(_token), tokenStored[address(_token)] + _amount);
     }
 
     function sendBackTokenToProvaider(uint _amount) external onlyOwner nonReentrant {
