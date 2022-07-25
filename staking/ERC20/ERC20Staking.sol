@@ -257,14 +257,14 @@ contract Staking is Ownable, ReentrancyGuard {
         if(longStake > timeNow){
             return 0;
         }else {
-            uint rate = rewardRateFlexibleStake;
+            uint rate = rewardRateLockStake;
             uint reward =  stakes[_account].amount * rate / 1000 ;
 
             return reward;
         }
     }
 
-    function _checkUnclaimedTimes(address _holderAddress) private view returns(uint){
+    function _checkUnclaimedTimes(address _holderAddress) public view returns(uint){
         require(stakes[_holderAddress].typeStake == TypeStake.FLEXIBLE, "Account not stake on flexible stake!.");
 
         uint timeNow = block.timestamp;
@@ -272,6 +272,16 @@ contract Staking is Ownable, ReentrancyGuard {
         uint totalUnclaimed = (timeNow - userLongStake) / flexibleStakeDuration;
 
         return(totalUnclaimed + 1);
+    }
+
+    function stakeTypeOf(address _account) external view returns(TypeStake) {
+        require(isStakeHolder(_account), "Nothing stake!.");
+        return stakes[_account].typeStake;
+    }
+
+    function stakeAmountOf(address _account) external view returns(uint) {
+        require(isStakeHolder(_account), "Nothing stake!.");
+        return stakes[_account].amount;
     }
 
     function _addStake(uint _amount)
@@ -313,23 +323,24 @@ contract Staking is Ownable, ReentrancyGuard {
         tokenStored[_tokenStored] =  _amount;
     }
 
-    function addStoredToken(IERC20 _token, uint _amount) external onlyOwner {
+    function addStoredToken(IERC20 _token, uint _amount) external onlyOwner nonReentrant {
         _token.safeTransferFrom(msg.sender, address(this), _amount);
         tokenStored[address(_token)] = tokenStored[address(_token)].add(_amount);
     }
 
-    function removeStoredToken(IERC20 _token) external onlyOwner {
+    function removeStoredToken(IERC20 _token) external onlyOwner nonReentrant {
         uint balanceStaking = _token.balanceOf(address(this));
         require(balanceStaking != 0, "Token is empty!");
         _token.safeTransfer(owner(), balanceStaking);
         tokenStored[address(_token)] = 0;
     }
 
-    function sendBackTokenToProvaider(uint _amount) external onlyOwner {
+    function sendBackTokenToProvaider(uint _amount) external onlyOwner nonReentrant {
         stakeProvaider.safeTransfer(address(stakeProvaider), _amount);
+        _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] - _amount);
     }
 
-    function withdraw() external onlyOwner {
+    function withdraw() external onlyOwner nonReentrant {
         payable(owner()).transfer(address(this).balance);
     }
 }
