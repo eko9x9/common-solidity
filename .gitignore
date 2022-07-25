@@ -1,1 +1,3 @@
 hardhat/node_modules
+hardhat/artifacts
+hardhat/typechain-types
