@@ -11,6 +11,11 @@ import "../utils/interfaces/IPancakeFactory.sol";
 import "../utils/interfaces/IPancakeRouter.sol";
 
 contract LockerToken is Ownable, ReentrancyGuard {
+    using SafeMath for uint256;
+    using SafeERC20 for IERC20;
+
+    address public feeReceiver;
+    uint256 public ethFee;
 
     struct TokenLock {
         address lpToken;
@@ -23,7 +28,7 @@ contract LockerToken is Ownable, ReentrancyGuard {
     mapping(uint256 => TokenLock) public tokenLocks;
 
     // user locks lp's
-    mapping(address => address[]) public userLocks;
+    mapping(address => address[]) private userLocks;
 
     mapping(uint256 => address) public withdrawerLocks;
 
@@ -33,8 +38,22 @@ contract LockerToken is Ownable, ReentrancyGuard {
         _;
     }
 
-    function lockLiquidity(address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
-        
+    constructor (address _feeReciver, uint256 _ethFee) {
+        feeReceiver = _feeReciver;
+        ethFee = _ethFee;
+    }
+
+    function lockLiquidity(address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer, address pair) external payable nonReentrant returns (uint256 lockId) {
+        require(amount > 0, "ZERO AMOUNT");
+        require(lpToken != address(0), "ZERO TOKEN");
+        require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
+        require(unlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
+        require(checkIsLpToken(lpToken, pair), "NOT PAIR");
+
+        if(msg.value > ethFee){
+            transferEth(msg.sender, msg.value.sub(ethFee));
+        }
+
         TokenLock memory lock = TokenLock({
             lpToken: lpToken,
             owner: withdrawer,
@@ -46,12 +65,29 @@ contract LockerToken is Ownable, ReentrancyGuard {
         tokenLocks[lockId] = lock;
         userLocks[msg.sender].push(lpToken);
         withdrawerLocks[lockId] = withdrawer;
+
+        IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
+
+        return lockId;
     }
 
-    function checkLpTokenIsPancake(address lpToken, address factoryAddress) private view returns (bool){
+    function checkIsLpToken(address lpToken, address factoryAddress) private view returns (bool){
         IPancakePair pair = IPancakePair(lpToken);
         address factoryPair = IPancakeFactory(factoryAddress).getPair(pair.token0(), pair.token1());
         return factoryPair == lpToken;
     }
 
+    function transferFees() private {
+        require(msg.value >= ethFee, "Fees are not enough!");
+        transferEth(feeReceiver, ethFee);
+    }
+
+    function transferEth(address recipient, uint256 amount) private {
+        (bool res,  ) = recipient.call{value: amount}("");
+        require(res, "BNB TRANSFER FAILED");
+    }
+
+    function userLockTokens(address adress) external view returns (address[] memory){
+        return userLocks[adress];
+    }
 }
