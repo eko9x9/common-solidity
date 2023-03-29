@@ -33,7 +33,7 @@ contract LockerToken is Ownable, ReentrancyGuard {
         _;
     }
 
-    function lockLiquidity(address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer, uint8 feePaymentMode) external payable nonReentrant returns (uint256 lockId) {
+    function lockLiquidity(address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
         
         TokenLock memory lock = TokenLock({
             lpToken: lpToken,
