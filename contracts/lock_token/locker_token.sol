@@ -71,10 +71,58 @@ contract LockerToken is Ownable, ReentrancyGuard {
         return lockId;
     }
 
+    function extendLockTime(uint256 lockId, uint256 newUnlockTime) external nonReentrant onlyLockOwner(lockId) {
+        require(newUnlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
+        require(newUnlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
+        TokenLock storage lock = tokenLocks[lockId];
+        require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
+        lock.unlockTime = newUnlockTime;
+    }
+
+    function increaseLockAmount(uint256 lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(lockId) {
+        require(amountToIncrement > 0, "ZERO AMOUNT");
+        TokenLock storage lock = tokenLocks[lockId];
+
+        lock.tokenAmount = lock.tokenAmount.add(amountToIncrement);
+        IERC20(lock.lpToken).safeTransferFrom(msg.sender, address(this), amountToIncrement);
+    }
+
     function checkIsLpToken(address lpToken, address factoryAddress) private view returns (bool){
         IPancakePair pair = IPancakePair(lpToken);
         address factoryPair = IPancakeFactory(factoryAddress).getPair(pair.token0(), pair.token1());
         return factoryPair == lpToken;
+    }
+
+    function withdraw(uint256 lockId) external {
+        TokenLock storage lock = tokenLocks[lockId];
+        withdrawPartially(lockId, lock.tokenAmount);
+    }
+
+    function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
+        TokenLock storage lock = tokenLocks[lockId];
+        require(lock.tokenAmount >= amount, "AMOUNT EXCEEDS LOCKED");
+        require(block.timestamp >= lock.unlockTime, "NOT YET UNLOCKED");
+        IERC20(lock.lpToken).safeTransfer(lock.owner, amount);
+
+        lock.tokenAmount = lock.tokenAmount.sub(amount);
+        if(lock.tokenAmount == 0) {
+            //clean up storage to save gas
+            uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.lpToken);
+            delete userLocks[lock.owner][lpAddressIndex];
+            delete withdrawerLocks[lockId];
+        }
+    }
+
+    function transferLock(uint256 lockId, address newOwner) external onlyLockOwner(lockId) {
+        require(newOwner != address(0), "ZERO NEW OWNER");
+        TokenLock storage lock = tokenLocks[lockId];
+
+        uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.lpToken);
+        delete userLocks[lock.owner][lpAddressIndex];
+        userLocks[newOwner].push(lock.lpToken);
+
+        lock.owner = newOwner;
+
     }
 
     function transferFees() private {
@@ -89,5 +137,14 @@ contract LockerToken is Ownable, ReentrancyGuard {
 
     function userLockTokens(address adress) external view returns (address[] memory){
         return userLocks[adress];
+    }
+
+    function indexOf(address[] memory arr, address searchFor) private pure returns (uint256) {
+        for (uint256 i = 0; i < arr.length; i++) {
+            if (arr[i] == searchFor) {
+                return i;
+            }
+        }
+        revert("Not Found");
     }
 }
