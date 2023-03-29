@@ -43,7 +43,7 @@ contract LockerToken is Ownable, ReentrancyGuard {
         ethFee = _ethFee;
     }
 
-    function lockLiquidity(address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer, address pair) external payable nonReentrant returns (uint256 lockId) {
+    function lockLiquidity(address pair, address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
         require(amount > 0, "ZERO AMOUNT");
         require(lpToken != address(0), "ZERO TOKEN");
         require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
