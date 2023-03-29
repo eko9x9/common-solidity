@@ -6,8 +6,7 @@ import "../../utils/library/SafeMath.sol";
 import "../Interfaces.sol";
 import "../../utils/library/Ownable.sol";
 import "../../utils/library/ReentrancyGuard.sol";
-
-contract Staking is Ownable, ReentrancyGuard {
+contract ArbistaleVault is ReentrancyGuard {
     // Library usage
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
@@ -36,22 +35,34 @@ contract Staking is Ownable, ReentrancyGuard {
      */
     mapping(address => TokenStake) public stakes;
     /**
+     * @notice The stakes for each stakeholder.
+     */
+    mapping(address => uint) public totalStakedToken;
+    /**
      * @notice token stored to distribute reward
      */
     mapping(address => uint) internal tokenStored;
     address[] public stakeHolders;
+    // dev address
+    address public dev;
 
     // staking provaider token
     IERC20 public stakeProvaider;
 
-    constructor(address _tokenProvaider, uint _durationFlexibleStake, uint _durationLockStake, uint16 _rewardRateFlexibleStake, uint16 _rewardRateLockStake, uint _maxAmountStake) nonReentrant {
+    constructor(address _tokenProvaider, address _devAddress, uint _durationFlexibleStake, uint _durationLockStake, uint16 _rewardRateFlexibleStake, uint16 _rewardRateLockStake, uint _maxAmountStake) nonReentrant {
         maxAmountStake = _maxAmountStake;
         flexibleStakeDuration = _durationFlexibleStake;
         lockDuration = _durationLockStake;
         rewardRateLockStake = _rewardRateLockStake;
         rewardRateFlexibleStake = _rewardRateFlexibleStake;
+        dev = _devAddress;
 
         stakeProvaider = IERC20(_tokenProvaider);
+    }
+
+    modifier onlyDev() {
+        require(msg.sender == dev, "Whut?");
+        _;
     }
 
     function stakeFlexible(uint _amount)
@@ -78,6 +89,7 @@ contract Staking is Ownable, ReentrancyGuard {
 
         stakeProvaider.safeTransferFrom(msg.sender, address(this), _amount);
         _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] + _amount);
+        _updateTotalStaked(address(stakeProvaider), totalStakedToken[address(stakeProvaider)] + amountStake);
     }
 
     function stakeLock(uint _amount)
@@ -104,6 +116,7 @@ contract Staking is Ownable, ReentrancyGuard {
 
         stakeProvaider.safeTransferFrom(msg.sender, address(this), _amount);
         _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] + _amount);
+        _updateTotalStaked(address(stakeProvaider), totalStakedToken[address(stakeProvaider)] + amountStake);
     }
 
     function unstake() public nonReentrant {
@@ -115,7 +128,9 @@ contract Staking is Ownable, ReentrancyGuard {
             _requestTransferToAddressFromStakeProvaiderIfBalanceNotEnough(msg.sender, amount);
         }else {
             stakeProvaider.transfer(msg.sender, amount);
+            _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] - amount);
         }
+        _updateTotalStaked(address(stakeProvaider), totalStakedToken[address(stakeProvaider)] - amount);
 
         delete stakes[msg.sender];
         for (uint256 s = 0; s < stakeHolders.length ; s += 1){
@@ -132,7 +147,16 @@ contract Staking is Ownable, ReentrancyGuard {
         require(reward != 0, "Stake time is not over yet");
 
         _transferReward(msg.sender, reward);
-        _resetStartFlexibleStakeUser(msg.sender);
+        _resetStartTimeStakeUser(msg.sender);
+    }
+
+    function claimRewardLockStake() public nonReentrant {
+        uint reward = rewardOfLockStake(msg.sender);
+        require(isStakeHolder(msg.sender), "Account not stake yet!");
+        require(reward != 0, "Stake time is not over yet");
+
+        _transferReward(msg.sender, reward);
+        _resetStartTimeStakeUser(msg.sender);
     }
 
     function claimRewardLockStakeAndUnstake() public nonReentrant {
@@ -141,6 +165,8 @@ contract Staking is Ownable, ReentrancyGuard {
         require(reward != 0, "Stake time is not over yet");
 
         _transferReward(msg.sender, stakes[msg.sender].amount + reward);
+        _updateTotalStaked(address(stakeProvaider), totalStakedToken[address(stakeProvaider)] - stakes[msg.sender].amount);
+        
         delete stakes[msg.sender];
         for (uint256 s = 0; s < stakeHolders.length ; s += 1){
             if (msg.sender == stakeHolders[s]) {
@@ -169,7 +195,7 @@ contract Staking is Ownable, ReentrancyGuard {
      */
     function setStakeProvaider(address _stakeProvaider)
         external
-        onlyOwner
+        onlyDev
     {
         stakeProvaider = IERC20(_stakeProvaider);
     }
@@ -179,7 +205,7 @@ contract Staking is Ownable, ReentrancyGuard {
      */
     function setRewardRateLockStake(uint16 _rate)
         external
-        onlyOwner
+        onlyDev
     {
         rewardRateLockStake = _rate;
     }
@@ -189,7 +215,7 @@ contract Staking is Ownable, ReentrancyGuard {
      */
     function setRewardRateFlexibleStake(uint16 _rate)
         external
-        onlyOwner
+        onlyDev
     {
         rewardRateFlexibleStake = _rate;
     }
@@ -199,7 +225,7 @@ contract Staking is Ownable, ReentrancyGuard {
      */
     function setFeeStake(uint _feeStake)
         external
-        onlyOwner
+        onlyDev
     {
         feeStake = _feeStake;
     }
@@ -207,11 +233,15 @@ contract Staking is Ownable, ReentrancyGuard {
     /**
      * @dev set duration in seconds
      */
-    function setDurationLockStake(uint _duration) external onlyOwner {
+    function setDurationLockStake(uint _duration) external onlyDev {
         lockDuration = _duration;
     }
 
-    function setDurationFlexibleReward(uint _duration) external onlyOwner {
+    function setMaxStake(uint _amountStake) external onlyDev {
+        maxAmountStake = _amountStake;
+    }
+
+    function setDurationFlexibleReward(uint _duration) external onlyDev {
         flexibleStakeDuration = _duration;
     }
 
@@ -219,7 +249,7 @@ contract Staking is Ownable, ReentrancyGuard {
         return tokenStored[_tokenAddress];
     }
 
-    function stakingMembers() public view returns(uint) {
+    function stakingLength() public view returns(uint) {
         return stakeHolders.length;
     }
 
@@ -238,9 +268,9 @@ contract Staking is Ownable, ReentrancyGuard {
         }else {
             uint rate = rewardRateFlexibleStake;
             uint reward =  stakes[_account].amount * rate / 1000 ;
-            uint unclaimedStake = _checkUnclaimedTimes(_account);
+            uint unclaimedStake = _checkUnclaimedTimes(_account, stakes[_account].typeStake);
 
-            return reward * unclaimedStake;
+            return reward.mul(unclaimedStake);
         }
     }
 
@@ -259,19 +289,10 @@ contract Staking is Ownable, ReentrancyGuard {
         }else {
             uint rate = rewardRateLockStake;
             uint reward =  stakes[_account].amount * rate / 1000 ;
+            uint unclaimedStake = _checkUnclaimedTimes(_account, stakes[_account].typeStake);
 
-            return reward;
+            return reward.mul(unclaimedStake);
         }
-    }
-
-    function _checkUnclaimedTimes(address _holderAddress) public view returns(uint){
-        require(stakes[_holderAddress].typeStake == TypeStake.FLEXIBLE, "Account not stake on flexible stake!.");
-
-        uint timeNow = block.timestamp;
-        uint userLongStake = stakes[_holderAddress].startTime + flexibleStakeDuration;
-        uint totalUnclaimed = (timeNow - userLongStake) / flexibleStakeDuration;
-
-        return(totalUnclaimed + 1);
     }
 
     function stakeTypeOf(address _account) public view returns(TypeStake) {
@@ -284,6 +305,21 @@ contract Staking is Ownable, ReentrancyGuard {
         return stakes[_account].amount;
     }
 
+    function currentTime() public view returns(uint) {
+        return block.timestamp;
+    }
+
+    function _checkUnclaimedTimes(address _holderAddress, TypeStake _typeStake) private view returns(uint){
+        require(stakes[_holderAddress].typeStake == _typeStake, "Account not stake on this type!.");
+
+        uint timeNow = block.timestamp;
+        uint typeStakeDuration = _typeStake == TypeStake.FLEXIBLE ? flexibleStakeDuration : lockDuration;
+        uint userLongStake = stakes[_holderAddress].startTime + typeStakeDuration;
+        uint totalUnclaimed = timeNow.sub(userLongStake) / typeStakeDuration;
+
+        return totalUnclaimed.add(1);
+    }
+
     function _addStake(uint _amount)
         private
     {
@@ -292,9 +328,11 @@ contract Staking is Ownable, ReentrancyGuard {
 
         stakes[msg.sender].amount = stakes[msg.sender].amount.add(_amount);
         stakes[msg.sender].startTime = block.timestamp;
+        _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] + _amount);
+        _updateTotalStaked(address(stakeProvaider), totalStakedToken[address(stakeProvaider)] + _amount);
     }
 
-    function _resetStartFlexibleStakeUser(address _account) private {
+    function _resetStartTimeStakeUser(address _account) private {
         require(isStakeHolder(_account) == true, "Address are not stake holder");
         stakes[msg.sender].startTime = block.timestamp;
     }
@@ -310,11 +348,6 @@ contract Staking is Ownable, ReentrancyGuard {
         }
     }
 
-    function _requestBalanceFromStakeProvaider(uint _amount) private {
-        stakeProvaider.transferFrom(address(stakeProvaider), address(this), _amount);
-        _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] + _amount);
-    }
-
     function _requestTransferToAddressFromStakeProvaiderIfBalanceNotEnough(address _account, uint _amount) private {
         stakeProvaider.transferFrom(address(stakeProvaider), _account, _amount);
     }
@@ -323,17 +356,35 @@ contract Staking is Ownable, ReentrancyGuard {
         tokenStored[_tokenStored] =  _amount;
     }
 
-    function addStoredToken(IERC20 _token, uint _amount) external onlyOwner nonReentrant {
+    function _updateTotalStaked(address _token, uint _amount) private {
+        totalStakedToken[_token] =  _amount;
+    }
+
+    function addToken(IERC20 _token, uint _amount) external onlyDev nonReentrant {
         _token.safeTransferFrom(msg.sender, address(this), _amount);
         _updateTokenStored(address(_token), tokenStored[address(_token)] + _amount);
     }
 
-    function sendBackTokenToProvaider(uint _amount) external onlyOwner nonReentrant {
+    function sendBackTokenToProvaider(uint _amount) external onlyDev nonReentrant {
         stakeProvaider.safeTransfer(address(stakeProvaider), _amount);
         _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] - _amount);
     }
 
-    function withdraw() external onlyOwner nonReentrant {
-        payable(owner()).transfer(address(this).balance);
+    function removeStoredToken(IERC20 _token, uint _amount) external onlyDev nonReentrant {
+        _token.safeTransfer(msg.sender, _amount);
+        _updateTokenStored(address(_token), tokenStored[address(_token)] - _amount);
+    }
+
+    function requestBalanceFromStakeProvaider(uint _amount) external onlyDev nonReentrant  {
+        stakeProvaider.transferFrom(address(stakeProvaider), address(this), _amount);
+        _updateTokenStored(address(stakeProvaider), tokenStored[address(stakeProvaider)] + _amount);
+    }
+
+    function withdraw() external onlyDev nonReentrant {
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
+    function setDev(address _devAddress) external onlyDev {
+        dev = _devAddress;
     }
 }
