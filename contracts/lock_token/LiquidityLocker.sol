@@ -10,7 +10,7 @@ import "../utils/interfaces/IPancakePair.sol";
 import "../utils/interfaces/IPancakeFactory.sol";
 import "../utils/interfaces/IPancakeRouter.sol";
 
-contract LockerToken is Ownable, ReentrancyGuard {
+contract LpLock is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
