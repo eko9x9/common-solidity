@@ -43,13 +43,13 @@ contract LockerToken is Ownable, ReentrancyGuard {
         ethFee = _ethFee;
     }
 
-    function lockLiquidity(address pair, address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
+    function lockLiquidity(address factoryAddress, address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
         require(amount > 0, "ZERO AMOUNT");
         require(lpToken != address(0), "ZERO TOKEN");
         require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
         require(unlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
-        require(checkIsLpToken(lpToken, pair), "NOT PAIR");
-
+        require(checkIsLpToken(lpToken, factoryAddress), "NOT PAIR");
+        transferFees();
         if(msg.value > ethFee){
             transferEth(msg.sender, msg.value.sub(ethFee));
         }
@@ -131,12 +131,15 @@ contract LockerToken is Ownable, ReentrancyGuard {
     }
 
     function transferEth(address recipient, uint256 amount) private {
-        (bool res,  ) = recipient.call{value: amount}("");
-        require(res, "BNB TRANSFER FAILED");
+        payable(recipient).transfer(amount);
     }
 
     function userLockTokens(address adress) external view returns (address[] memory){
         return userLocks[adress];
+    }
+
+    function setEthFee(uint256 newEthFee) external {
+        ethFee = newEthFee;
     }
 
     function indexOf(address[] memory arr, address searchFor) private pure returns (uint256) {
