@@ -36,7 +36,7 @@ contract LockToken is ReentrancyGuard, Ownable {
     uint256 public lockNonce = 0;
     mapping(uint256 => Lock) public tokenLocks;
 
-    function deposit(address _token, uint256 _amount, uint _time) external payable returns (uint256 lockId){
+    function deposit(address _token, uint256 _amount, uint _time) external payable nonReentrant returns (uint256 lockId){
         require(_amount > 0, "ZERO AMOUNT");
         require(_time > block.timestamp, "UNLOCK TIME IN THE PAST");
         require(_time < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
@@ -54,7 +54,7 @@ contract LockToken is ReentrancyGuard, Ownable {
         return lockId;
     }
 
-    function extendLockTime(uint256 lockId, uint256 newUnlockTime) external nonReentrant onlyLockOwner(lockId) {
+    function extendLockTime(uint256 lockId, uint256 newUnlockTime) external nonReentrant onlyLockOwner (lockId) {
         require(newUnlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
         require(newUnlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
         Lock storage lock = tokenLocks[lockId];
