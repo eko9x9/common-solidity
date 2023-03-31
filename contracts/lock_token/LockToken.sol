@@ -73,7 +73,7 @@ contract LockToken is ReentrancyGuard, Ownable {
     function withdraw(uint256 lockId) external nonReentrant onlyLockOwner(lockId) { 
         Lock memory lock = tokenLocks[lockId];
         require(block.timestamp > lock.endtime, "You must to attend your locktime!");
-        IERC20(lock.token).transfer(msg.sender, lock.amount);
+        IERC20(lock.token).transfer(lock.owner, lock.amount);
 
         //clean up storage to save gas
         uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.token);
@@ -84,7 +84,7 @@ contract LockToken is ReentrancyGuard, Ownable {
         Lock memory lock = tokenLocks[lockId];
         require(block.timestamp > lock.endtime, "You must to attend your locktime!");
 
-        IERC20(lock.token).transfer(msg.sender, amount);
+        IERC20(lock.token).transfer(lock.owner, amount);
 
         if(lock.amount == 0) {
             //clean up storage to save gas
