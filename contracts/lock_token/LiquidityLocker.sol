@@ -41,7 +41,7 @@ contract LpLock is Ownable, ReentrancyGuard {
         ethFee = _ethFee;
     }
 
-    function lockLiquidity(address factoryAddress, address lpToken, uint256 amount, uint256 unlockTime, address payable withdrawer) external payable nonReentrant returns (uint256 lockId) {
+    function lockLiquidity(address factoryAddress, address lpToken, uint256 amount, uint256 unlockTime, address payable owner) external payable nonReentrant returns (uint256 lockId) {
         require(amount > 0, "ZERO AMOUNT");
         require(lpToken != address(0), "ZERO TOKEN");
         require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
@@ -54,7 +54,7 @@ contract LpLock is Ownable, ReentrancyGuard {
 
         TokenLock memory lock = TokenLock({
             lpToken: lpToken,
-            owner: withdrawer,
+            owner: owner,
             tokenAmount: amount,
             unlockTime: unlockTime
         });
