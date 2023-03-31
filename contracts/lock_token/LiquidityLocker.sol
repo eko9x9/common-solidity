@@ -30,8 +30,6 @@ contract LpLock is Ownable, ReentrancyGuard {
     // user locks lp's
     mapping(address => address[]) private userLocks;
 
-    mapping(uint256 => address) public withdrawerLocks;
-
     modifier onlyLockOwner(uint lockId) {
         TokenLock storage lock = tokenLocks[lockId];
         require(lock.owner == address(msg.sender), "NO ACTIVE LOCK OR NOT OWNER");
@@ -64,7 +62,6 @@ contract LpLock is Ownable, ReentrancyGuard {
         lockId = lockNonce++;
         tokenLocks[lockId] = lock;
         userLocks[msg.sender].push(lpToken);
-        withdrawerLocks[lockId] = withdrawer;
 
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
 
@@ -109,7 +106,6 @@ contract LpLock is Ownable, ReentrancyGuard {
             //clean up storage to save gas
             uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.lpToken);
             delete userLocks[lock.owner][lpAddressIndex];
-            delete withdrawerLocks[lockId];
         }
     }
 
@@ -122,7 +118,6 @@ contract LpLock is Ownable, ReentrancyGuard {
         userLocks[newOwner].push(lock.lpToken);
 
         lock.owner = newOwner;
-
     }
 
     function transferFees() private {
@@ -134,12 +129,16 @@ contract LpLock is Ownable, ReentrancyGuard {
         payable(recipient).transfer(amount);
     }
 
-    function userLockTokens(address adress) external view returns (address[] memory){
-        return userLocks[adress];
+    function userLock(address owner) external view returns (address[] memory){
+        return userLocks[owner];
     }
 
-    function setEthFee(uint256 newEthFee) external {
+    function setEthFee(uint256 newEthFee) external onlyOwner {
         ethFee = newEthFee;
+    }
+
+    function setFeeReceiver(address newFeeReceiver) external onlyOwner {
+        feeReceiver = newFeeReceiver;
     }
 
     function indexOf(address[] memory arr, address searchFor) private pure returns (uint256) {
