@@ -113,8 +113,8 @@ contract locker is ReentrancyGuard, Ownable {
         IERC20(lock.token).transfer(lock.owner, lock.amount);
 
         //clean up storage to save gas
-        uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.token);
-        delete userLocks[lock.owner][lpAddressIndex];
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
+        delete userLocks[lock.owner][tokenAddressIdx];
     }
 
     function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
@@ -125,8 +125,8 @@ contract locker is ReentrancyGuard, Ownable {
 
         if(lock.amount == 0) {
             //clean up storage to save gas
-            uint256 lpAddressIndex = indexOf(userLocks[lock.owner], lock.token);
-            delete userLocks[lock.owner][lpAddressIndex];
+            uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
+            delete userLocks[lock.owner][tokenAddressIdx];
         }
     }
 
