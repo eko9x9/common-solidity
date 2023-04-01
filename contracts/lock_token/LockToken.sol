@@ -5,8 +5,10 @@ import "../utils/library/SafeERC20.sol";
 import "../utils/library/SafeMath.sol";
 import "../utils/library/Ownable.sol";
 import "../utils/library/ReentrancyGuard.sol";
+import "../utils/interfaces/IPancakePair.sol";
+import "../utils/interfaces/IPancakeFactory.sol";
 
-contract LockToken is ReentrancyGuard, Ownable {
+contract locker is ReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -16,8 +18,9 @@ contract LockToken is ReentrancyGuard, Ownable {
     struct Lock {
         address token;
         uint amount;
-        uint endtime;
+        uint unlockTime;
         address owner;
+        bool isLp;
     }
 
     mapping(address => address[]) private userLocks;
@@ -36,20 +39,48 @@ contract LockToken is ReentrancyGuard, Ownable {
     uint256 public lockNonce = 0;
     mapping(uint256 => Lock) public tokenLocks;
 
-    function deposit(address _token, uint256 _amount, uint _lockTime, address payable owner) external payable nonReentrant returns (uint256 lockId){
-        require(_amount > 0, "ZERO AMOUNT");
-        require(_lockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
-        require(_lockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
+    function lockToken(address token, uint256 amount, uint unlockTime, address payable owner) external payable nonReentrant returns (uint256 lockId){
+        require(amount > 0, "ZERO AMOUNT");
+        require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
+        require(unlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
         transferFees();
         if(msg.value > ethFee){
             transferEth(msg.sender, msg.value.sub(ethFee));
         }
 
         lockId = lockNonce++;
-        tokenLocks[lockId] = Lock(_token, _amount, _lockTime, owner);
-        userLocks[msg.sender].push(_token);
+        tokenLocks[lockId] = Lock(token, amount, unlockTime, owner, false);
+        userLocks[msg.sender].push(token);
 
-        IERC20(_token).transferFrom(msg.sender, address(this),_amount);
+        IERC20(token).transferFrom(msg.sender, address(this),amount);
+
+        return lockId;
+    }
+
+    function lockLiquidity(address factoryAddress, address lpToken, uint256 amount, uint256 unlockTime, address payable owner) external payable nonReentrant returns (uint256 lockId) {
+        require(amount > 0, "ZERO AMOUNT");
+        require(lpToken != address(0), "ZERO TOKEN");
+        require(unlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
+        require(unlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
+        require(checkIsLpToken(lpToken, factoryAddress), "NOT PAIR");
+        transferFees();
+        if(msg.value > ethFee){
+            transferEth(msg.sender, msg.value.sub(ethFee));
+        }
+
+        Lock memory lock = Lock({
+            token: lpToken,
+            owner: owner,
+            amount: amount,
+            unlockTime: unlockTime,
+            isLp: false
+        });
+
+        lockId = lockNonce++;
+        tokenLocks[lockId] = lock;
+        userLocks[msg.sender].push(lpToken);
+
+        IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
 
         return lockId;
     }
@@ -58,8 +89,8 @@ contract LockToken is ReentrancyGuard, Ownable {
         require(newUnlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
         require(newUnlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
         Lock storage lock = tokenLocks[lockId];
-        require(lock.endtime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
-        lock.endtime = newUnlockTime;
+        require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
+        lock.unlockTime = newUnlockTime;
     }
 
     function increaseLockAmount(uint256 lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(lockId) {
@@ -72,7 +103,7 @@ contract LockToken is ReentrancyGuard, Ownable {
     
     function withdraw(uint256 lockId) external nonReentrant onlyLockOwner(lockId) { 
         Lock memory lock = tokenLocks[lockId];
-        require(block.timestamp > lock.endtime, "You must to attend your locktime!");
+        require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
         IERC20(lock.token).transfer(lock.owner, lock.amount);
 
         //clean up storage to save gas
@@ -82,7 +113,7 @@ contract LockToken is ReentrancyGuard, Ownable {
 
     function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
         Lock memory lock = tokenLocks[lockId];
-        require(block.timestamp > lock.endtime, "You must to attend your locktime!");
+        require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
 
         IERC20(lock.token).transfer(lock.owner, amount);
 
@@ -115,6 +146,12 @@ contract LockToken is ReentrancyGuard, Ownable {
 
     function userLockToken(address owner) external view returns (address[] memory){
         return userLocks[owner];
+    }
+
+    function checkIsLpToken(address lpToken, address factoryAddress) private view returns (bool){
+        IPancakePair pair = IPancakePair(lpToken);
+        address factoryPair = IPancakeFactory(factoryAddress).getPair(pair.token0(), pair.token1());
+        return factoryPair == lpToken;
     }
 
     function chekBalance(address _token) public view returns (uint){
