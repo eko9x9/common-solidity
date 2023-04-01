@@ -49,7 +49,13 @@ contract locker is ReentrancyGuard, Ownable {
         }
 
         lockId = lockNonce++;
-        tokenLocks[lockId] = Lock(token, amount, unlockTime, owner, false);
+        tokenLocks[lockId] = Lock({
+            token: token,
+            owner: owner,
+            amount: amount,
+            unlockTime: unlockTime,
+            isLp: false
+        });
         userLocks[msg.sender].push(token);
 
         IERC20(token).transferFrom(msg.sender, address(this),amount);
