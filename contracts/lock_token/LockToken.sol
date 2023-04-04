@@ -79,7 +79,7 @@ contract locker is ReentrancyGuard, Ownable {
             owner: owner,
             amount: amount,
             unlockTime: unlockTime,
-            isLp: false
+            isLp: true
         });
 
         lockId = lockNonce++;
