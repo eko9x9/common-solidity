@@ -115,6 +115,7 @@ contract locker is ReentrancyGuard, Ownable {
         //clean up storage to save gas
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
         delete userLocks[lock.owner][tokenAddressIdx];
+        delete tokenLocks[lockId];
     }
 
     function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
@@ -122,11 +123,13 @@ contract locker is ReentrancyGuard, Ownable {
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
 
         IERC20(lock.token).transfer(lock.owner, amount);
+        lock.amount = lock.amount.sub(amount);
 
         if(lock.amount == 0) {
             //clean up storage to save gas
             uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
             delete userLocks[lock.owner][tokenAddressIdx];
+            delete tokenLocks[lockId];
         }
     }
 
