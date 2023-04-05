@@ -119,7 +119,7 @@ contract locker is ReentrancyGuard, Ownable {
     }
 
     function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
-        Lock memory lock = tokenLocks[lockId];
+        Lock storage lock = tokenLocks[lockId];
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
 
         IERC20(lock.token).transfer(lock.owner, amount);
