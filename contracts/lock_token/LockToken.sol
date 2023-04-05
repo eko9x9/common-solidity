@@ -127,8 +127,7 @@ contract locker is ReentrancyGuard, Ownable {
 
         // Update UserLocks info
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-        userLocks[lock.owner].push(token);
+        userLocks[lock.owner][tokenAddressIdx] = token;
 
         lock.unlockTime = newUnlockTime;
     }
@@ -146,8 +145,7 @@ contract locker is ReentrancyGuard, Ownable {
 
         // Update UserLocks info
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-        userLocks[lock.owner].push(token);
+        userLocks[lock.owner][tokenAddressIdx] = token;
 
         lock.amount = lock.amount.add(amountToIncrement);
         IERC20(lock.token).safeTransferFrom(msg.sender, address(this), amountToIncrement);
@@ -187,15 +185,14 @@ contract locker is ReentrancyGuard, Ownable {
 
         // Update UserLocks info
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-        
 
         if(lock.amount == 0) {
             //clean up storage to save gas
             delete userLocks[lock.owner][tokenAddressIdx];
             delete tokenLocks[lockId];
         }else {
-            userLocks[lock.owner].push(token);
+            // Update UserLocks info
+            userLocks[lock.owner][tokenAddressIdx] = token;
         }
     }
 
@@ -209,6 +206,7 @@ contract locker is ReentrancyGuard, Ownable {
             unlockTime: lock.unlockTime,
             isLp: lock.isLp
         });
+        
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
         delete userLocks[lock.owner][tokenAddressIdx];
 
