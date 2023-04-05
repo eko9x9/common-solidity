@@ -23,7 +23,14 @@ contract locker is ReentrancyGuard, Ownable {
         bool isLp;
     }
 
-    mapping(address => address[]) private userLocks;
+    struct UserLocks {
+        address token;
+        uint amount;
+        uint unlockTime;
+        bool isLp;
+    }
+
+    mapping(address => UserLocks[]) private userLocks;
 
     modifier onlyLockOwner(uint lockId) {
         Lock storage lock = tokenLocks[lockId];
@@ -56,7 +63,14 @@ contract locker is ReentrancyGuard, Ownable {
             unlockTime: unlockTime,
             isLp: false
         });
-        userLocks[msg.sender].push(token);
+        userLocks[msg.sender].push(
+            UserLocks({
+                token: token,
+                amount: amount,
+                unlockTime: unlockTime,
+                isLp: false
+            })
+        );
 
         IERC20(token).transferFrom(msg.sender, address(this),amount);
 
@@ -84,7 +98,14 @@ contract locker is ReentrancyGuard, Ownable {
 
         lockId = lockNonce++;
         tokenLocks[lockId] = lock;
-        userLocks[msg.sender].push(lpToken);
+        userLocks[msg.sender].push(
+            UserLocks({
+                token: lpToken,
+                amount: amount,
+                unlockTime: unlockTime,
+                isLp: true
+            })
+        );
 
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
 
@@ -112,8 +133,15 @@ contract locker is ReentrancyGuard, Ownable {
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
         IERC20(lock.token).transfer(lock.owner, lock.amount);
 
+        UserLocks memory token = UserLocks({
+            token: lock.token,
+            amount: lock.amount,
+            unlockTime: lock.unlockTime,
+            isLp: lock.isLp
+        });
+
         //clean up storage to save gas
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
         delete userLocks[lock.owner][tokenAddressIdx];
         delete tokenLocks[lockId];
     }
@@ -127,7 +155,14 @@ contract locker is ReentrancyGuard, Ownable {
 
         if(lock.amount == 0) {
             //clean up storage to save gas
-            uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
+            UserLocks memory token = UserLocks({
+                token: lock.token,
+                amount: lock.amount,
+                unlockTime: lock.unlockTime,
+                isLp: lock.isLp
+            });
+
+            uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
             delete userLocks[lock.owner][tokenAddressIdx];
             delete tokenLocks[lockId];
         }
@@ -137,10 +172,16 @@ contract locker is ReentrancyGuard, Ownable {
         require(newOwner != address(0), "ZERO NEW OWNER");
         Lock storage lock = tokenLocks[lockId];
 
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], lock.token);
+        UserLocks memory token = UserLocks({
+            token: lock.token,
+            amount: lock.amount,
+            unlockTime: lock.unlockTime,
+            isLp: lock.isLp
+        });
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
         delete userLocks[lock.owner][tokenAddressIdx];
-        userLocks[newOwner].push(lock.token);
 
+        userLocks[newOwner].push(token);
         lock.owner = newOwner;
     }
 
@@ -153,7 +194,7 @@ contract locker is ReentrancyGuard, Ownable {
         payable(recipient).transfer(amount);
     }
 
-    function userLockToken(address owner) external view returns (address[] memory){
+    function userTokenLocks(address owner) external view returns (UserLocks[] memory){
         return userLocks[owner];
     }
 
@@ -175,9 +216,9 @@ contract locker is ReentrancyGuard, Ownable {
         feeReceiver = newFeeReceiver;
     }
 
-    function indexOf(address[] memory arr, address searchFor) private pure returns (uint256) {
+    function indexOf(UserLocks[] memory arr, UserLocks memory searchFor) private pure returns (uint256) {
         for (uint256 i = 0; i < arr.length; i++) {
-            if (arr[i] == searchFor) {
+            if (arr[i].token == searchFor.token) {
                 return i;
             }
         }
