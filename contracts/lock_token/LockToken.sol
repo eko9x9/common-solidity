@@ -178,18 +178,24 @@ contract locker is ReentrancyGuard, Ownable {
         IERC20(lock.token).transfer(lock.owner, amount);
         lock.amount = lock.amount.sub(amount);
 
+        UserLocks memory token = UserLocks({
+            token: lock.token,
+            amount: lock.amount.sub(amount),
+            unlockTime: lock.unlockTime,
+            isLp: lock.isLp
+        });
+
+        // Update UserLocks info
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
+        delete userLocks[lock.owner][tokenAddressIdx];
+        
+
         if(lock.amount == 0) {
             //clean up storage to save gas
-            UserLocks memory token = UserLocks({
-                token: lock.token,
-                amount: lock.amount,
-                unlockTime: lock.unlockTime,
-                isLp: lock.isLp
-            });
-
-            uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
             delete userLocks[lock.owner][tokenAddressIdx];
             delete tokenLocks[lockId];
+        }else {
+            userLocks[lock.owner].push(token);
         }
     }
 
