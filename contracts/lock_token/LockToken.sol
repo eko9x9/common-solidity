@@ -117,12 +117,37 @@ contract locker is ReentrancyGuard, Ownable {
         require(newUnlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
         Lock storage lock = tokenLocks[lockId];
         require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
+
+        UserLocks memory token = UserLocks({
+            token: lock.token,
+            amount: lock.amount,
+            unlockTime: newUnlockTime,
+            isLp: lock.isLp
+        });
+
+        // Update UserLocks info
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
+        delete userLocks[lock.owner][tokenAddressIdx];
+        userLocks[lock.owner].push(token);
+
         lock.unlockTime = newUnlockTime;
     }
 
     function increaseLockAmount(uint256 lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(lockId) {
         require(amountToIncrement > 0, "ZERO AMOUNT");
         Lock storage lock = tokenLocks[lockId];
+
+        UserLocks memory token = UserLocks({
+            token: lock.token,
+            amount: lock.amount.add(amountToIncrement),
+            unlockTime: lock.unlockTime,
+            isLp: lock.isLp
+        });
+
+        // Update UserLocks info
+        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
+        delete userLocks[lock.owner][tokenAddressIdx];
+        userLocks[lock.owner].push(token);
 
         lock.amount = lock.amount.add(amountToIncrement);
         IERC20(lock.token).safeTransferFrom(msg.sender, address(this), amountToIncrement);
