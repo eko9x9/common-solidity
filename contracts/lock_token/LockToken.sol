@@ -11,9 +11,6 @@ import "../utils/interfaces/IPancakeFactory.sol";
 contract locker is ReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-
-    address public feeReceiver;
-    uint256 public ethFee;
     
     struct Lock {
         address token;
@@ -30,7 +27,15 @@ contract locker is ReentrancyGuard, Ownable {
         bool isLp;
     }
 
+    address public feeReceiver;
+    uint256 public ethFee;
+
+    mapping(uint256 => Lock) public tokenLocks;
     mapping(address => UserLocks[]) private userLocks;
+
+    uint256 public lockNonce = 0;
+    uint256 public lockLPNonce = 0;
+    uint256 public lockTokenNonce = 0;
 
     modifier onlyLockOwner(uint lockId) {
         Lock storage lock = tokenLocks[lockId];
@@ -42,9 +47,6 @@ contract locker is ReentrancyGuard, Ownable {
         feeReceiver = _feeReciver;
         ethFee = _ethFee;
     }
-
-    uint256 public lockNonce = 0;
-    mapping(uint256 => Lock) public tokenLocks;
 
     function lockToken(address token, uint256 amount, uint unlockTime, address payable owner) external payable nonReentrant returns (uint256 lockId){
         require(amount > 0, "ZERO AMOUNT");
@@ -73,7 +75,8 @@ contract locker is ReentrancyGuard, Ownable {
         );
 
         IERC20(token).transferFrom(msg.sender, address(this),amount);
-
+        lockTokenNonce++;
+        
         return lockId;
     }
 
@@ -108,6 +111,7 @@ contract locker is ReentrancyGuard, Ownable {
         );
 
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
+        lockLPNonce++;
 
         return lockId;
     }
