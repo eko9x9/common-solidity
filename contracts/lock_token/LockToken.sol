@@ -233,16 +233,27 @@ contract locker is ReentrancyGuard, Ownable {
         return factoryPair == lpToken;
     }
 
-    function chekBalance(address _token) public view returns (uint){
-        return IERC20(_token).balanceOf(address(this));
-    }
-
     function setEthFee(uint256 newEthFee) external onlyOwner{
         ethFee = newEthFee;
     }
 
     function setFeeReceiver(address newFeeReceiver) external onlyOwner{
         feeReceiver = newFeeReceiver;
+    }
+
+    function chekBalance(address _token) public view returns (uint){
+        return IERC20(_token).balanceOf(address(this));
+    }
+
+    function findLock(address tokenOrPool) external view returns (Lock memory token) {
+        for (uint256 index = 0; index < lockNonce; index++) {
+            if(tokenLocks[index].token == tokenOrPool){
+                token = tokenLocks[index];
+
+                return token;
+            }
+        }
+        revert("Not Found");
     }
 
     function indexOf(UserLocks[] memory arr, UserLocks memory searchFor) private pure returns (uint256) {
