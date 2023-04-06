@@ -256,6 +256,17 @@ contract locker is ReentrancyGuard, Ownable {
         revert("Not Found");
     }
 
+    function findLockOwner(address tokenOrPool, address owner) external view returns (Lock memory token) {
+        for (uint256 index = 0; index < lockNonce; index++) {
+            if(tokenLocks[index].token == tokenOrPool && tokenLocks[index].owner == owner){
+                token = tokenLocks[index];
+
+                return token;
+            }
+        }
+        revert("Not Found");
+    }
+
     function indexOf(UserLocks[] memory arr, UserLocks memory searchFor) private pure returns (uint256) {
         for (uint256 i = 0; i < arr.length; i++) {
             if (arr[i].token == searchFor.token) {
