@@ -21,6 +21,7 @@ contract locker is ReentrancyGuard, Ownable {
     }
 
     struct UserLocks {
+        uint256 lockId;
         address token;
         uint amount;
         uint unlockTime;
@@ -67,6 +68,7 @@ contract locker is ReentrancyGuard, Ownable {
         });
         userLocks[msg.sender].push(
             UserLocks({
+                lockId: lockId,
                 token: token,
                 amount: amount,
                 unlockTime: unlockTime,
@@ -103,6 +105,7 @@ contract locker is ReentrancyGuard, Ownable {
         tokenLocks[lockId] = lock;
         userLocks[msg.sender].push(
             UserLocks({
+                lockId: lockId,
                 token: lpToken,
                 amount: amount,
                 unlockTime: unlockTime,
@@ -123,6 +126,7 @@ contract locker is ReentrancyGuard, Ownable {
         require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
 
         UserLocks memory token = UserLocks({
+            lockId: lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: newUnlockTime,
@@ -141,6 +145,7 @@ contract locker is ReentrancyGuard, Ownable {
         Lock storage lock = tokenLocks[lockId];
 
         UserLocks memory token = UserLocks({
+            lockId: lockId,
             token: lock.token,
             amount: lock.amount.add(amountToIncrement),
             unlockTime: lock.unlockTime,
@@ -161,6 +166,7 @@ contract locker is ReentrancyGuard, Ownable {
         IERC20(lock.token).transfer(lock.owner, lock.amount);
 
         UserLocks memory token = UserLocks({
+            lockId: lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: lock.unlockTime,
@@ -181,6 +187,7 @@ contract locker is ReentrancyGuard, Ownable {
         lock.amount = lock.amount.sub(amount);
 
         UserLocks memory token = UserLocks({
+            lockId: lockId,
             token: lock.token,
             amount: lock.amount.sub(amount),
             unlockTime: lock.unlockTime,
@@ -205,6 +212,7 @@ contract locker is ReentrancyGuard, Ownable {
         Lock storage lock = tokenLocks[lockId];
 
         UserLocks memory token = UserLocks({
+            lockId: lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: lock.unlockTime,
@@ -273,7 +281,7 @@ contract locker is ReentrancyGuard, Ownable {
 
     function indexOf(UserLocks[] memory arr, UserLocks memory searchFor) private pure returns (uint256) {
         for (uint256 i = 0; i < arr.length; i++) {
-            if (arr[i].token == searchFor.token) {
+            if (arr[i].lockId == searchFor.lockId) {
                 return i;
             }
         }
