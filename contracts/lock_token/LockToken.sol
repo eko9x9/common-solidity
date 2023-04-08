@@ -8,7 +8,7 @@ import "../utils/library/ReentrancyGuard.sol";
 import "../utils/interfaces/IPancakePair.sol";
 import "../utils/interfaces/IPancakeFactory.sol";
 
-contract locker is ReentrancyGuard, Ownable {
+contract Locker is ReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     
@@ -34,9 +34,9 @@ contract locker is ReentrancyGuard, Ownable {
     mapping(uint256 => Lock) public tokenLocks;
     mapping(address => UserLocks[]) private userLocks;
 
-    uint256 public lockNonce = 0;
-    uint256 public lockLPNonce = 0;
-    uint256 public lockTokenNonce = 0;
+    uint256 public lockNonce = 1;
+    uint256 public lockLPNonce = 1;
+    uint256 public lockTokenNonce = 1;
 
     modifier onlyLockOwner(uint lockId) {
         Lock storage lock = tokenLocks[lockId];
@@ -119,14 +119,14 @@ contract locker is ReentrancyGuard, Ownable {
         return lockId;
     }
 
-    function extendLockTime(uint256 lockId, uint256 newUnlockTime) external nonReentrant onlyLockOwner (lockId) {
+    function extendLockTime(uint256 _lockId, uint256 newUnlockTime) external nonReentrant onlyLockOwner (_lockId) {
         require(newUnlockTime > block.timestamp, "UNLOCK TIME IN THE PAST");
         require(newUnlockTime < 10000000000, "INVALID UNLOCK TIME, MUST BE UNIX TIME IN SECONDS");
-        Lock storage lock = tokenLocks[lockId];
+        Lock storage lock = tokenLocks[_lockId];
         require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
 
         UserLocks memory token = UserLocks({
-            lockId: lockId,
+            lockId: _lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: newUnlockTime,
@@ -135,17 +135,18 @@ contract locker is ReentrancyGuard, Ownable {
 
         // Update UserLocks info
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        userLocks[lock.owner][tokenAddressIdx] = token;
+        delete userLocks[lock.owner][tokenAddressIdx];
+        userLocks[lock.owner].push(token);
 
         lock.unlockTime = newUnlockTime;
     }
 
-    function increaseLockAmount(uint256 lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(lockId) {
+    function increaseLockAmount(uint256 _lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(_lockId) {
         require(amountToIncrement > 0, "ZERO AMOUNT");
-        Lock storage lock = tokenLocks[lockId];
+        Lock storage lock = tokenLocks[_lockId];
 
         UserLocks memory token = UserLocks({
-            lockId: lockId,
+            lockId: _lockId,
             token: lock.token,
             amount: lock.amount.add(amountToIncrement),
             unlockTime: lock.unlockTime,
@@ -154,19 +155,20 @@ contract locker is ReentrancyGuard, Ownable {
 
         // Update UserLocks info
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        userLocks[lock.owner][tokenAddressIdx] = token;
+        delete userLocks[lock.owner][tokenAddressIdx];
+        userLocks[lock.owner].push(token);
 
         lock.amount = lock.amount.add(amountToIncrement);
         IERC20(lock.token).safeTransferFrom(msg.sender, address(this), amountToIncrement);
     }
     
-    function withdraw(uint256 lockId) external nonReentrant onlyLockOwner(lockId) { 
-        Lock memory lock = tokenLocks[lockId];
+    function withdraw(uint256 _lockId) external nonReentrant onlyLockOwner(_lockId) { 
+        Lock memory lock = tokenLocks[_lockId];
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
         IERC20(lock.token).transfer(lock.owner, lock.amount);
 
         UserLocks memory token = UserLocks({
-            lockId: lockId,
+            lockId: _lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: lock.unlockTime,
@@ -176,18 +178,18 @@ contract locker is ReentrancyGuard, Ownable {
         //clean up storage to save gas
         uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
         delete userLocks[lock.owner][tokenAddressIdx];
-        delete tokenLocks[lockId];
+        delete tokenLocks[_lockId];
     }
 
-    function withdrawPartially(uint256 lockId, uint256 amount) public nonReentrant onlyLockOwner(lockId) {
-        Lock storage lock = tokenLocks[lockId];
+    function withdrawPartially(uint256 _lockId, uint256 amount) public nonReentrant onlyLockOwner(_lockId) {
+        Lock storage lock = tokenLocks[_lockId];
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
 
         IERC20(lock.token).transfer(lock.owner, amount);
         lock.amount = lock.amount.sub(amount);
 
         UserLocks memory token = UserLocks({
-            lockId: lockId,
+            lockId: _lockId,
             token: lock.token,
             amount: lock.amount.sub(amount),
             unlockTime: lock.unlockTime,
@@ -200,19 +202,20 @@ contract locker is ReentrancyGuard, Ownable {
         if(lock.amount == 0) {
             //clean up storage to save gas
             delete userLocks[lock.owner][tokenAddressIdx];
-            delete tokenLocks[lockId];
+            delete tokenLocks[_lockId];
         }else {
             // Update UserLocks info
-            userLocks[lock.owner][tokenAddressIdx] = token;
+            // Update UserLocks info
+            userLocks[lock.owner].push(token);
         }
     }
 
-    function transferLock(uint256 lockId, address newOwner) external onlyLockOwner(lockId) {
+    function transferLock(uint256 _lockId, address newOwner) external onlyLockOwner(_lockId) {
         require(newOwner != address(0), "ZERO NEW OWNER");
-        Lock storage lock = tokenLocks[lockId];
+        Lock storage lock = tokenLocks[_lockId];
 
         UserLocks memory token = UserLocks({
-            lockId: lockId,
+            lockId: _lockId,
             token: lock.token,
             amount: lock.amount,
             unlockTime: lock.unlockTime,
