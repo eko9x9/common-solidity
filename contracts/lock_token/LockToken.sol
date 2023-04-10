@@ -5,12 +5,14 @@ import "../utils/library/SafeERC20.sol";
 import "../utils/library/SafeMath.sol";
 import "../utils/library/Ownable.sol";
 import "../utils/library/ReentrancyGuard.sol";
+import "../utils/library/EnumerableSet.sol";
 import "../utils/interfaces/IPancakePair.sol";
 import "../utils/interfaces/IPancakeFactory.sol";
 
 contract Locker is ReentrancyGuard, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.UintSet;
     
     struct Lock {
         address token;
@@ -20,19 +22,11 @@ contract Locker is ReentrancyGuard, Ownable {
         bool isLp;
     }
 
-    struct UserLocks {
-        uint256 lockId;
-        address token;
-        uint amount;
-        uint unlockTime;
-        bool isLp;
-    }
-
     address public feeReceiver;
     uint256 public ethFee;
 
     mapping(uint256 => Lock) public tokenLocks;
-    mapping(address => UserLocks[]) private userLocks;
+     mapping(address => EnumerableSet.UintSet) private userLocks;
 
     uint256 public lockNonce = 1;
     uint256 public lockLPNonce = 1;
@@ -66,15 +60,6 @@ contract Locker is ReentrancyGuard, Ownable {
             unlockTime: unlockTime,
             isLp: false
         });
-        userLocks[msg.sender].push(
-            UserLocks({
-                lockId: lockId,
-                token: token,
-                amount: amount,
-                unlockTime: unlockTime,
-                isLp: false
-            })
-        );
 
         IERC20(token).transferFrom(msg.sender, address(this),amount);
         lockTokenNonce++;
@@ -103,15 +88,6 @@ contract Locker is ReentrancyGuard, Ownable {
 
         lockId = lockNonce++;
         tokenLocks[lockId] = lock;
-        userLocks[msg.sender].push(
-            UserLocks({
-                lockId: lockId,
-                token: lpToken,
-                amount: amount,
-                unlockTime: unlockTime,
-                isLp: true
-            })
-        );
 
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
         lockLPNonce++;
@@ -125,38 +101,12 @@ contract Locker is ReentrancyGuard, Ownable {
         Lock storage lock = tokenLocks[_lockId];
         require(lock.unlockTime < newUnlockTime, "NOT INCREASING UNLOCK TIME");
 
-        UserLocks memory token = UserLocks({
-            lockId: _lockId,
-            token: lock.token,
-            amount: lock.amount,
-            unlockTime: newUnlockTime,
-            isLp: lock.isLp
-        });
-
-        // Update UserLocks info
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-        userLocks[lock.owner].push(token);
-
         lock.unlockTime = newUnlockTime;
     }
 
     function increaseLockAmount(uint256 _lockId, uint256 amountToIncrement) external nonReentrant onlyLockOwner(_lockId) {
         require(amountToIncrement > 0, "ZERO AMOUNT");
         Lock storage lock = tokenLocks[_lockId];
-
-        UserLocks memory token = UserLocks({
-            lockId: _lockId,
-            token: lock.token,
-            amount: lock.amount.add(amountToIncrement),
-            unlockTime: lock.unlockTime,
-            isLp: lock.isLp
-        });
-
-        // Update UserLocks info
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-        userLocks[lock.owner].push(token);
 
         lock.amount = lock.amount.add(amountToIncrement);
         IERC20(lock.token).safeTransferFrom(msg.sender, address(this), amountToIncrement);
@@ -166,18 +116,8 @@ contract Locker is ReentrancyGuard, Ownable {
         Lock memory lock = tokenLocks[_lockId];
         require(block.timestamp > lock.unlockTime, "You must to attend your locktime!");
         IERC20(lock.token).transfer(lock.owner, lock.amount);
+        
 
-        UserLocks memory token = UserLocks({
-            lockId: _lockId,
-            token: lock.token,
-            amount: lock.amount,
-            unlockTime: lock.unlockTime,
-            isLp: lock.isLp
-        });
-
-        //clean up storage to save gas
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
         delete tokenLocks[_lockId];
     }
 
@@ -188,44 +128,16 @@ contract Locker is ReentrancyGuard, Ownable {
         IERC20(lock.token).transfer(lock.owner, amount);
         lock.amount = lock.amount.sub(amount);
 
-        UserLocks memory token = UserLocks({
-            lockId: _lockId,
-            token: lock.token,
-            amount: lock.amount.sub(amount),
-            unlockTime: lock.unlockTime,
-            isLp: lock.isLp
-        });
-
-        // Update UserLocks info
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-
         if(lock.amount == 0) {
             //clean up storage to save gas
-            delete userLocks[lock.owner][tokenAddressIdx];
             delete tokenLocks[_lockId];
-        }else {
-            // Update UserLocks info
-            // Update UserLocks info
-            userLocks[lock.owner].push(token);
         }
     }
 
     function transferLock(uint256 _lockId, address newOwner) external onlyLockOwner(_lockId) {
         require(newOwner != address(0), "ZERO NEW OWNER");
         Lock storage lock = tokenLocks[_lockId];
-
-        UserLocks memory token = UserLocks({
-            lockId: _lockId,
-            token: lock.token,
-            amount: lock.amount,
-            unlockTime: lock.unlockTime,
-            isLp: lock.isLp
-        });
         
-        uint256 tokenAddressIdx = indexOf(userLocks[lock.owner], token);
-        delete userLocks[lock.owner][tokenAddressIdx];
-
-        userLocks[newOwner].push(token);
         lock.owner = newOwner;
     }
 
@@ -236,10 +148,6 @@ contract Locker is ReentrancyGuard, Ownable {
 
     function transferEth(address recipient, uint256 amount) private {
         payable(recipient).transfer(amount);
-    }
-
-    function userTokenLocks(address owner) external view returns (UserLocks[] memory){
-        return userLocks[owner];
     }
 
     function checkIsLpToken(address lpToken, address factoryAddress) private view returns (bool){
@@ -277,15 +185,6 @@ contract Locker is ReentrancyGuard, Ownable {
                 token = tokenLocks[index];
 
                 return token;
-            }
-        }
-        revert("Not Found");
-    }
-
-    function indexOf(UserLocks[] memory arr, UserLocks memory searchFor) private pure returns (uint256) {
-        for (uint256 i = 0; i < arr.length; i++) {
-            if (arr[i].lockId == searchFor.lockId) {
-                return i;
             }
         }
         revert("Not Found");
