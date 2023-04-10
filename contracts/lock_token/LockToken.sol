@@ -26,7 +26,8 @@ contract Locker is ReentrancyGuard, Ownable {
     uint256 public ethFee;
 
     mapping(uint256 => Lock) public tokenLocks;
-     mapping(address => EnumerableSet.UintSet) private userLocks;
+    mapping(address => uint256[]) private tokenLockIds;
+    mapping(address => EnumerableSet.UintSet) private userLocks;
 
     uint256 public lockNonce = 1;
     uint256 public lockLPNonce = 1;
@@ -61,6 +62,7 @@ contract Locker is ReentrancyGuard, Ownable {
             isLp: false
         });
         userLocks[owner].add(lockId);
+        tokenLockIds[token].push(lockId);
 
         IERC20(token).transferFrom(msg.sender, address(this),amount);
         lockTokenNonce++;
@@ -90,6 +92,7 @@ contract Locker is ReentrancyGuard, Ownable {
         lockId = lockNonce++;
         tokenLocks[lockId] = lock;
         userLocks[owner].add(lockId);
+        tokenLockIds[lpToken].push(lockId);
 
         IERC20(lpToken).safeTransferFrom(msg.sender, address(this), amount);
         lockLPNonce++;
@@ -174,26 +177,8 @@ contract Locker is ReentrancyGuard, Ownable {
         return IERC20(_token).balanceOf(address(this));
     }
 
-    function findLock(address tokenOrPool) external view returns (Lock memory token) {
-        for (uint256 index = 0; index < lockNonce; index++) {
-            if(tokenLocks[index].token == tokenOrPool){
-                token = tokenLocks[index];
-
-                return token;
-            }
-        }
-        revert("Not Found");
-    }
-
-    function findLockOwner(address tokenOrPool, address owner) external view returns (Lock memory token) {
-        for (uint256 index = 0; index < lockNonce; index++) {
-            if(tokenLocks[index].token == tokenOrPool && tokenLocks[index].owner == owner){
-                token = tokenLocks[index];
-
-                return token;
-            }
-        }
-        revert("Not Found");
+    function findLock(address tokenOrPool) external view returns (uint256[] memory) {
+        return tokenLockIds[tokenOrPool];
     }
 
     function userLocksLength(address user) external view returns (uint256) {
