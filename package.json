@@ -20,6 +20,7 @@
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
-    "@nomicfoundation/hardhat-toolbox": "^1.0.2"
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomicfoundation/hardhat-verify": "^1.1.1"
   }
 }

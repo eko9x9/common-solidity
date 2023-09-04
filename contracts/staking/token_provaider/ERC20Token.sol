@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "../../utils/interfaces/IERC20.sol";
 import "../../utils/library/Ownable.sol";
-import "../../utils/library/Safemath.sol";
+import "../../utils/library/SafeMath.sol";
 import "../../utils/library/Address.sol";
 import "../../utils/interfaces/IPancakeFactory.sol";
 import "../../utils/interfaces/IPancakeRouter.sol";

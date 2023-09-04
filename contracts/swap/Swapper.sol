@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../Interfaces.sol";
+import "../utils/interfaces/IPancakeRouter.sol";
+import "../utils/library/Ownable.sol";
 
 contract Swapper is Ownable {
-    IROUTER router;
+    IPancakeRouterV2 router;
     uint public swapETHToTokensFee;
 
     constructor (address _router, uint _swapETHToTokensFee) {
-        router = IROUTER(_router); // Router adress
+        router = IPancakeRouterV2(_router); // Router adress
         swapETHToTokensFee = _swapETHToTokensFee; // Eth to Token Fee
     }
 
@@ -119,7 +120,7 @@ contract Swapper is Ownable {
     }
 
     function setRouterAddress(address _router) external {
-        router = IROUTER(_router); 
+        router = IPancakeRouterV2(_router); 
     }
     
     function wethAddress() public view returns (address)  {
