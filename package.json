@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "@nomicfoundation/hardhat-verify": "^1.1.1"
+    "@nomicfoundation/hardhat-verify": "^1.1.1",
+    "dotenv": "^16.3.1"
   }
 }

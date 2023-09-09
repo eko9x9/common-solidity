@@ -1,6 +1,819 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
+    "D:\\app\\common-solidity\\contracts\\bsc-x-eth\\BscXEth.sol": {
+      "lastModificationDate": 1690534152524,
+      "contentHash": "08221c212ee4897fea6f5b1218f33551",
+      "sourceName": "contracts/bsc-x-eth/BscXEth.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": []
+    },
+    "D:\\app\\common-solidity\\contracts\\custom\\library\\library.sol": {
+      "lastModificationDate": 1690534152534,
+      "contentHash": "c3a4b0e71d8d3b7c54254a15a827124a",
+      "sourceName": "contracts/custom/library/library.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": []
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\ERC721\\ERC721Staking.sol": {
+      "lastModificationDate": 1690534152526,
+      "contentHash": "08221c212ee4897fea6f5b1218f33551",
+      "sourceName": "contracts/staking/ERC721/ERC721Staking.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": []
+    },
+    "D:\\app\\common-solidity\\contracts\\custom\\interfaces\\Interfaces.sol": {
+      "lastModificationDate": 1690534152533,
+      "contentHash": "6a7c46b2bda9171b76e8a89128294f8b",
+      "sourceName": "contracts/custom/interfaces/Interfaces.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Context",
+        "IERC20",
+        "IROUTER",
+        "IRouterPair"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\lock_token\\LockToken.sol": {
+      "lastModificationDate": 1690534152525,
+      "contentHash": "dc37dcca71ddab004870047f0e8209b1",
+      "sourceName": "contracts/lock_token/LockToken.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/library/SafeERC20.sol",
+        "../utils/library/SafeMath.sol",
+        "../utils/library/Ownable.sol",
+        "../utils/library/ReentrancyGuard.sol",
+        "../utils/library/EnumerableSet.sol",
+        "../utils/interfaces/IPancakePair.sol",
+        "../utils/interfaces/IPancakeFactory.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Locker"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\SafeERC20.sol": {
+      "lastModificationDate": 1690534152532,
+      "contentHash": "52b20365fc05e0646d3968d2af8a0e4a",
+      "sourceName": "contracts/utils/library/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IERC20.sol",
+        "./Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20Permit",
+        "SafeERC20"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\SafeMath.sol": {
+      "lastModificationDate": 1690534152533,
+      "contentHash": "104e00e261f343c89df50f2d017fce69",
+      "sourceName": "contracts/utils/library/SafeMath.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SafeMath"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\Ownable.sol": {
+      "lastModificationDate": 1690534152531,
+      "contentHash": "34f897c820b0d64c040aa0198ecea8f9",
+      "sourceName": "contracts/utils/library/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Context",
+        "Ownable"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\ReentrancyGuard.sol": {
+      "lastModificationDate": 1690534152532,
+      "contentHash": "43afcbcf27bf11367ce045834d0472e1",
+      "sourceName": "contracts/utils/library/ReentrancyGuard.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ReentrancyGuard"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\EnumerableSet.sol": {
+      "lastModificationDate": 1690534152531,
+      "contentHash": "204661ae36b49cd324e05a24fcd511a7",
+      "sourceName": "contracts/utils/library/EnumerableSet.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "EnumerableSet"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IPancakePair.sol": {
+      "lastModificationDate": 1690534152530,
+      "contentHash": "3b79e2d4bf29dd12c037372964f7f994",
+      "sourceName": "contracts/utils/interfaces/IPancakePair.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.5.0"
+      ],
+      "artifacts": [
+        "IPancakePair"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IPancakeFactory.sol": {
+      "lastModificationDate": 1694244908633,
+      "contentHash": "39414cfe2bae28bd56e43fbd65296b5a",
+      "sourceName": "contracts/utils/interfaces/IPancakeFactory.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IPancakeFactory"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IERC20.sol": {
+      "lastModificationDate": 1690534152529,
+      "contentHash": "7b905cb2d87c86cb78c455b899567b0f",
+      "sourceName": "contracts/utils/interfaces/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\library\\Address.sol": {
+      "lastModificationDate": 1690534152531,
+      "contentHash": "612ac402c71e4fca3b1f00ebea9bd451",
+      "sourceName": "contracts/utils/library/Address.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.1"
+      ],
+      "artifacts": [
+        "Address"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\token_provaider\\ERC20Token.sol": {
+      "lastModificationDate": 1694244900687,
+      "contentHash": "6cc35fd5706ba988ca869b1a43f903f0",
+      "sourceName": "contracts/staking/token_provaider/ERC20Token.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/interfaces/IERC20.sol",
+        "../../utils/library/Ownable.sol",
+        "../../utils/library/SafeMath.sol",
+        "../../utils/library/Address.sol",
+        "../../utils/interfaces/IPancakeFactory.sol",
+        "../../utils/interfaces/IPancakeRouter.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "StakeProvaider"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IPancakeRouter.sol": {
+      "lastModificationDate": 1694244926079,
+      "contentHash": "a87e7f458260347aa1c4c27f8c4e8bb9",
+      "sourceName": "contracts/utils/interfaces/IPancakeRouter.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IPancakeRouterV2"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\swap\\Swapper.sol": {
+      "lastModificationDate": 1694244990594,
+      "contentHash": "d676254ad138b29798172ef08c23fdd8",
+      "sourceName": "contracts/swap/Swapper.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/interfaces/IPancakeRouter.sol",
+        "../utils/library/Ownable.sol",
+        "../utils/interfaces/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Swapper"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\tokens\\ERC20\\simple.sol": {
+      "lastModificationDate": 1694244903947,
+      "contentHash": "a893e8c84b29c096394eaefa22a38005",
+      "sourceName": "contracts/tokens/ERC20/simple.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../../utils/interfaces/IERC20.sol",
+        "../../utils/library/Ownable.sol",
+        "../../utils/library/SafeMath.sol",
+        "../../utils/library/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "SimpleToken"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\SafeERC20.sol": {
+      "lastModificationDate": 1690534152527,
+      "contentHash": "3f9af3cc6bb0cc862ae0a840b85ee5e7",
+      "sourceName": "contracts/staking/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/interfaces/IERC20.sol",
+        "../utils/library/Address.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC20Permit",
+        "SafeERC20"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\ERC20\\ERC20Staking.sol": {
+      "lastModificationDate": 1690534152526,
+      "contentHash": "cac5bd3c5a9f4dc543ccd822a580d5d8",
+      "sourceName": "contracts/staking/ERC20/ERC20Staking.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../SafeERC20.sol",
+        "../../utils/library/SafeMath.sol",
+        "../Interfaces.sol",
+        "../../utils/library/Ownable.sol",
+        "../../utils/library/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ArbistaleVault"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\Interfaces.sol": {
+      "lastModificationDate": 1690534152527,
+      "contentHash": "716d52f3876d18ecf7560a5bd0dc069b",
+      "sourceName": "contracts/staking/Interfaces.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IROUTER",
+        "IRouterPair"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\staking\\ERC20\\ERC20MultipleTokenStaking.sol": {
+      "lastModificationDate": 1690534152525,
+      "contentHash": "b8581b6a05f055b2b49ea6a8e641973e",
+      "sourceName": "contracts/staking/ERC20/ERC20MultipleTokenStaking.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../SafeERC20.sol",
+        "../../utils/library/SafeMath.sol",
+        "../Interfaces.sol",
+        "../../utils/library/Ownable.sol",
+        "../../utils/library/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Staking"
+      ]
+    },
     "D:\\app\\common-solidity\\contracts\\Lock.sol": {
       "lastModificationDate": 1690534152524,
       "contentHash": "f4f4ff34dcf2451a7a7e8745d2b55f55",
@@ -9,8 +822,8 @@
         "version": "0.8.9",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -46,8 +859,8 @@
         "version": "0.8.9",
         "settings": {
           "optimizer": {
-            "enabled": false,
-            "runs": 200
+            "enabled": true,
+            "runs": 1000
           },
           "outputSelection": {
             "*": {
@@ -71,6 +884,50 @@
       ],
       "artifacts": [
         "console"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\tokens\\ERC20\\mint1.sol": {
+      "lastModificationDate": 1690534152529,
+      "contentHash": "fdbe95acd9f59bf2ae6fb9fd27e59b51",
+      "sourceName": "contracts/tokens/ERC20/mint1.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.6"
+      ],
+      "artifacts": [
+        "Address",
+        "Context",
+        "FuzzyPunky",
+        "IERC20",
+        "IUniswapV2Factory",
+        "IUniswapV2Pair",
+        "IUniswapV2Router01",
+        "IUniswapV2Router02",
+        "Ownable",
+        "SafeMath"
       ]
     }
   }
