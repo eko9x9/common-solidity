@@ -1,7 +1,10 @@
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-verify';
 
+import env from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
+
+env.config();
 
 const config: HardhatUserConfig | any = {
   solidity: {
@@ -15,10 +18,12 @@ const config: HardhatUserConfig | any = {
   },
   networks: {
     goerli: {
-      url: "https://rpc.ankr.com/eth_goerli"
+      url: "https://rpc.ankr.com/eth_goerli",
+      accounts: [process.env.PRIVATE_KEY_1]
     },
     mainnet: {
-      url: "https://eth.llamarpc.com"
+      url: "https://eth.llamarpc.com",
+      accounts: [process.env.PRIVATE_KEY_1]
     }
   },
   etherscan: {
