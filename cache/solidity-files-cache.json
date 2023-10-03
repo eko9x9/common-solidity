@@ -1,39 +1,6 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "D:\\app\\common-solidity\\contracts\\bsc-x-eth\\BscXEth.sol": {
-      "lastModificationDate": 1690534152524,
-      "contentHash": "08221c212ee4897fea6f5b1218f33551",
-      "sourceName": "contracts/bsc-x-eth/BscXEth.sol",
-      "solcConfig": {
-        "version": "0.8.9",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 1000
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": []
-    },
     "D:\\app\\common-solidity\\contracts\\custom\\library\\library.sol": {
       "lastModificationDate": 1690534152534,
       "contentHash": "c3a4b0e71d8d3b7c54254a15a827124a",
@@ -928,6 +895,187 @@
         "IUniswapV2Router02",
         "Ownable",
         "SafeMath"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\Context.sol": {
+      "lastModificationDate": 1694246173297,
+      "contentHash": "7093b039d79750162610c51cd75dfce8",
+      "sourceName": "contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "Context"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\contracts\\AccessControl.sol": {
+      "lastModificationDate": 1694246518346,
+      "contentHash": "076e62c3856759426454130cdd70406e",
+      "sourceName": "contracts/utils/contracts/AccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IAccessControl.sol",
+        "../Context.sol",
+        "../introspection/ERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "AccessControl"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IAccessControl.sol": {
+      "lastModificationDate": 1694246080191,
+      "contentHash": "f37236b6bb5b1847276fef8dc1e98ade",
+      "sourceName": "contracts/utils/interfaces/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IAccessControl"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\introspection\\ERC165.sol": {
+      "lastModificationDate": 1694246294071,
+      "contentHash": "64faa6062cd2aa8b2f532215a8aa9d08",
+      "sourceName": "contracts/utils/introspection/ERC165.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ERC165"
+      ]
+    },
+    "D:\\app\\common-solidity\\contracts\\utils\\interfaces\\IERC165.sol": {
+      "lastModificationDate": 1694246306168,
+      "contentHash": "106cb8f499ed6364f6a9f2b13527b274",
+      "sourceName": "contracts/utils/interfaces/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IERC165"
       ]
     }
   }
