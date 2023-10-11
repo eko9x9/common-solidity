@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import "../utils/library/SafeERC20.sol";
 import "../utils/library/SafeMath.sol";
-import "../utils/library/Ownable.sol";
-import "../utils/library/ReentrancyGuard.sol";
+import "../utils/contracts/Ownable.sol";
+import "../utils/contracts/ReentrancyGuard.sol";
 import "../utils/library/EnumerableSet.sol";
 import "../utils/interfaces/IPancakePair.sol";
 import "../utils/interfaces/IPancakeFactory.sol";

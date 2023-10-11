@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "../SafeERC20.sol";
 import "../../utils/library/SafeMath.sol";
 import "../Interfaces.sol";
-import "../../utils/library/Ownable.sol";
-import "../../utils/library/ReentrancyGuard.sol";
+import "../../utils/contracts/Ownable.sol";
+import "../../utils/contracts/ReentrancyGuard.sol";
 
 contract Staking is Ownable, ReentrancyGuard {
     // Library usage
