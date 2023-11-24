@@ -6,9 +6,9 @@ async function main() {
   const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
 
   const lockedAmount = ethers.utils.parseEther("0.001");
-
+  console.log(unlockTime)
   const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const lock = await Lock.deploy(unlockTime, );
 
   await lock.deployed();
 

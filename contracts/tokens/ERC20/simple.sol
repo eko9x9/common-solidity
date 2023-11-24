@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../utils/interfaces/IERC20.sol";
-import "../../utils/library/Ownable.sol";
+import "../../utils/contracts/Ownable.sol";
 import "../../utils/library/SafeMath.sol";
 import "../../utils/library/Address.sol";
 

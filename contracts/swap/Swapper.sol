@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../utils/interfaces/IPancakeRouter.sol";
-import "../utils/library/Ownable.sol";
+import "../utils/contracts/Ownable.sol";
 import "../utils/interfaces/IERC20.sol";
 
 contract Swapper is Ownable {

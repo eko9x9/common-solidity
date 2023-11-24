@@ -5,13 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "compile": "npx hardhat compile"
+    "compile": "npx hardhat compile",
+    "deploy:goerli": "npx hardhat run --network goerli scripts/deploy.ts",
+    "deploy2:goerli": "npx hardhat run --network goerli scripts/deploy2.ts",
+    "deploy3:bionicTestnet": "npx hardhat run --network bionicTestnet scripts/deploy2.ts",
+    "verify:goerli": "hardhat verify --contract contracts/temp/${userId}/${contractName}.sol:${contractName} --network goerli ${contractAddress}"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.1.0",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@types/jest": "^28.1.6",
     "chai": "^4.3.6",
     "ethers": "^5.6.9",
