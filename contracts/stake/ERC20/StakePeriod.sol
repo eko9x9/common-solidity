@@ -924,22 +924,17 @@ contract Staking is Ownable, ReentrancyGuard {
 
     function stake(uint256 _amount) external nonReentrant {
         require(block.timestamp >= startDate && block.timestamp < finishDate, "Cannot stake outside staking period");
+        bool isExist = stakeInfo[msg.sender].amount != 0;
 
         stakingToken.transferFrom(msg.sender, address(this), _amount);
         totalStaked += _amount;
-        stakeCount++;
-       
-        stakeInfo[msg.sender] = stakeInfo[msg.sender] = StakeInfo(_amount, block.timestamp, 0, startDate, finishDate);
-
-        emit Stake(msg.sender, _amount);
-    }
-
-    function addAmountStake(uint256 _amount) external nonReentrant isStakeExist(msg.sender) {
-
-        stakingToken.transferFrom(msg.sender, address(this), _amount);
-        totalStaked += _amount;
-        StakeInfo memory staked = stakeInfo[msg.sender];
-        stakeInfo[msg.sender] = StakeInfo(staked.amount+_amount, staked.stakeDate, staked.lastClaimDate, staked.startPeriod, staked.finishPeriod);
+        if(isExist){
+            StakeInfo memory staked = stakeInfo[msg.sender];
+            stakeInfo[msg.sender] = StakeInfo(staked.amount+_amount, staked.stakeDate, staked.lastClaimDate, staked.startPeriod, staked.finishPeriod);
+        }else{
+            stakeCount++;
+            stakeInfo[msg.sender] = StakeInfo(_amount, block.timestamp, 0, startDate, finishDate);
+        }
 
         emit Stake(msg.sender, _amount);
     }
